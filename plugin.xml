@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="cn.jsfund.licaijie.location" version="0.0.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+    <name>Location</name>
+    <DESCRIPTION>location in app plugin for jiashi-licaijie</DESCRIPTION>
+    <js-module name="location" src="www/tx_location.js">
+        <clobbers target="window.plugins.location" />
+    </js-module>
+    <!-- ios -->
+    <platform name="ios">
+        <config-file parent="/*" target="config.xml">
+            <feature name="Location">
+                <param name="ios-package" value="CDVLocation" />
+            </feature>
+        </config-file>
+        <framework src="src/ios/QMapKit.framework" custom="true" />
+        <source-file src="src/ios/CDVLocation.m" />
+        <header-file src="src/ios/CDVLocation.h" />
+        <resource-file src="src/ios/QMapKit.bundle"/>
+    </platform>
+    <!-- android -->
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="Location">
+                <param name="android-package" value="cn.jsfund.licaijie.location.CDVLocation" />
+            </feature>
+        </config-file>
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+            <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+            <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+            <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
+        </config-file>
+        <!-- <config&#45;file target="AndroidManifest.xml" parent="/manifest/application"> -->
+            <!-- <meta&#45;data android:name="TencentMapSDK" android:value="IBKBZ&#45;EWKH4&#45;AZZUL&#45;DAOBQ&#45;HBWP2&#45;JJFD7" /> -->
+        <!-- </config&#45;file> -->
+        <source-file src="src/android/CDVLocation.java" target-dir="src/cn/jsfund/licaijie/location" />
+        <source-file src="src/android/TencentLocationSDK_v4.2.0_r150819.jar" target-dir="libs"/>
+        <source-file src="src/android/armeabi/libtencentloc.so" target-dir="libs/armeabi"/>
+        <source-file src="src/android/armeabi-v7a/libtencentloc.so" target-dir="libs/armeabi-v7a"/>
+    </platform>
+
+   </plugin>
+
