@@ -13,7 +13,7 @@
     self.mapView = [[QMapView alloc] initWithFrame: self.viewController.view.bounds];
     self.mapView.delegate = self;
     [_mapView setShowsUserLocation: YES];
-
+    
 }
 
 - (void)mapView:(QMapView *)mapView didFailToLocateUserWithError:(NSError *)error {
@@ -26,63 +26,78 @@
 
 - (void)mapView:(QMapView *)mapView didUpdateUserLocation:(QUserLocation *)userLocation updatingLocation:(BOOL)updatingLocation
 {
-    [mapView setShowsUserLocation: NO];
+    //    [mapView setShowsUserLocation: NO];
+    if (!updatingLocation) {
+        return;
+    }
     NSString *currentLatitude = [[NSString alloc]
-            initWithFormat:@"%g",
-                           userLocation.location.coordinate.latitude];
+                                 initWithFormat:@"%g",
+                                 userLocation.location.coordinate.latitude];
     NSString *currentLongitude = [[NSString alloc]
-            initWithFormat:@"%g",
-                           userLocation.location.coordinate.longitude];
-
+                                  initWithFormat:@"%g",
+                                  userLocation.location.coordinate.longitude];
+    
     NSString *url = [NSString
-            stringWithFormat: @"http://apis.map.qq.com/ws/geocoder/v1/?location=%@,%@&key=%@",
-                    currentLatitude,
-                    currentLongitude,
-                    self.key
-    ];
-
+                     stringWithFormat: @"http://apis.map.qq.com/ws/geocoder/v1/?location=%@,%@&key=%@",
+                     currentLatitude,
+                     currentLongitude,
+                     self.key
+                     ];
+    
     NSMutableURLRequest *request = [NSMutableURLRequest
-            requestWithURL:[NSURL URLWithString:url]
-               cachePolicy:NSURLRequestReloadIgnoringLocalAndRemoteCacheData
-           timeoutInterval:10
-    ];
-
+                                    requestWithURL:[NSURL URLWithString:url]
+                                    cachePolicy:NSURLRequestReloadIgnoringLocalAndRemoteCacheData
+                                    timeoutInterval:10
+                                    ];
+    
     [request setHTTPMethod: @"GET"];
-
+    
     NSError *requestError = nil;
     NSError *parseError = nil;
     NSURLResponse *urlResponse = nil;
     CDVPluginResult *pluginResult;
-
-
+    
+    
     NSData *regionResponse = [NSURLConnection
-            sendSynchronousRequest:request
-                 returningResponse:&urlResponse
-                             error:&requestError
-    ];
-
-    NSDictionary* regionInfo = [NSJSONSerialization
-            JSONObjectWithData:regionResponse
-                       options:kNilOptions
-                         error:&parseError
-    ];
-
-    if (parseError || requestError) {
+                              sendSynchronousRequest:request
+                              returningResponse:&urlResponse
+                              error:&requestError
+                              ];
+    
+    if (requestError) {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"failed"];
-
-    } else {
-        if ([regionInfo[@"status"] isEqualToNumber:@0]) {
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
-                                         messageAsDictionary:@{
-                                                 @"longitude": currentLongitude,
-                                                 @"latitude": currentLatitude,
-                                                 @"cityCode": regionInfo[@"result"][@"ad_info"][@"adcode"]
-                                         }
-            ];
-        } else {
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"failed"];
-        }
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.myCallbackId];
+        return;
     }
+    NSString *aString = [[NSString alloc] initWithData:regionResponse encoding:NSUTF8StringEncoding];
+    NSLog(@"regionResponse is %@", aString);
+    
+    NSDictionary* regionInfo = [NSJSONSerialization
+                                JSONObjectWithData:regionResponse
+                                options:NSJSONReadingAllowFragments
+                                error:&parseError
+                                ];
+    
+    if (parseError) {
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"failed"];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.myCallbackId];
+        return;
+    }
+    
+    if ([regionInfo[@"status"] isEqualToNumber:@0]) {
+        
+        NSString* location = [NSString stringWithFormat:
+                              @"{longitude:%@,latitude:%@,cityCode:%@,cityName:%@}",
+                              currentLongitude, currentLatitude,
+                              regionInfo[@"result"][@"ad_info"][@"adcode"],
+                              regionInfo[@"result"][@"ad_info"][@"city"]];
+        
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:location];
+        
+    } else {
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"failed"];
+    }
+    
     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.myCallbackId];
 }
 
