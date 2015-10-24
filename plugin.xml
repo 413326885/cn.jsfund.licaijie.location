@@ -6,7 +6,8 @@
         <clobbers target="window.plugins.location" />
     </js-module>
     <!-- ios -->
-    <platform name="ios">
+   <!-- 
+     <platform name="ios">
         <config-file parent="/*" target="config.xml">
             <feature name="Location">
                 <param name="ios-package" value="CDVLocation" />
@@ -17,6 +18,7 @@
         <header-file src="src/ios/CDVLocation.h" />
         <resource-file src="src/ios/QMapKit.bundle"/>
     </platform>
+   -->
     <!-- android -->
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
